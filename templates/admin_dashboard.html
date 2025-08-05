@@ -1,0 +1,297 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="row">
+    <div class="col-12">
+        <h1 class="h2 mb-4">
+            <i class="fas fa-cog me-2"></i>Admin Dashboard
+        </h1>
+    </div>
+</div>
+
+<!-- Statistics Cards -->
+<div class="row mb-4">
+    <div class="col-md-2">
+        <div class="card text-center">
+            <div class="card-body">
+                <i class="fas fa-gift fa-2x text-primary mb-2"></i>
+                <h4 class="card-title">{{ stats.total_donations }}</h4>
+                <p class="card-text text-muted small">Total Donations</p>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-2">
+        <div class="card text-center">
+            <div class="card-body">
+                <i class="fas fa-clock fa-2x text-warning mb-2"></i>
+                <h4 class="card-title">{{ stats.pending_donations }}</h4>
+                <p class="card-text text-muted small">Pending Review</p>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-2">
+        <div class="card text-center">
+            <div class="card-body">
+                <i class="fas fa-check-circle fa-2x text-success mb-2"></i>
+                <h4 class="card-title">{{ stats.approved_donations }}</h4>
+                <p class="card-text text-muted small">Approved</p>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-2">
+        <div class="card text-center">
+            <div class="card-body">
+                <i class="fas fa-handshake fa-2x text-info mb-2"></i>
+                <h4 class="card-title">{{ stats.donated_items }}</h4>
+                <p class="card-text text-muted small">Donated</p>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-2">
+        <div class="card text-center">
+            <div class="card-body">
+                <i class="fas fa-hand-holding-heart fa-2x text-secondary mb-2"></i>
+                <h4 class="card-title">{{ stats.active_requests }}</h4>
+                <p class="card-text text-muted small">Active Requests</p>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-2">
+        <div class="card text-center">
+            <div class="card-body">
+                <i class="fas fa-link fa-2x text-primary mb-2"></i>
+                <h4 class="card-title">{{ stats.total_matches }}</h4>
+                <p class="card-text text-muted small">Total Matches</p>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Tabs for different admin sections -->
+<ul class="nav nav-tabs mb-4" id="adminTabs" role="tablist">
+    <li class="nav-item" role="presentation">
+        <button class="nav-link active" id="pending-tab" data-bs-toggle="tab" data-bs-target="#pending" type="button">
+            <i class="fas fa-clock me-2"></i>Pending Donations ({{ pending_donations|length }})
+        </button>
+    </li>
+    <li class="nav-item" role="presentation">
+        <button class="nav-link" id="requests-tab" data-bs-toggle="tab" data-bs-target="#requests" type="button">
+            <i class="fas fa-hand-holding-heart me-2"></i>Active Requests ({{ active_requests|length }})
+        </button>
+    </li>
+    <li class="nav-item" role="presentation">
+        <button class="nav-link" id="matches-tab" data-bs-toggle="tab" data-bs-target="#matches" type="button">
+            <i class="fas fa-handshake me-2"></i>Recent Matches
+        </button>
+    </li>
+</ul>
+
+<div class="tab-content" id="adminTabsContent">
+    <!-- Pending Donations Tab -->
+    <div class="tab-pane fade show active" id="pending" role="tabpanel">
+        {% if pending_donations %}
+            <div class="row g-3">
+                {% for donation in pending_donations %}
+                <div class="col-md-6 col-lg-4">
+                    <div class="card h-100">
+                        {% if donation.photo_filename %}
+                        <img src="{{ url_for('static', filename='uploads/' + donation.photo_filename) }}" 
+                             class="card-img-top" style="height: 200px; object-fit: cover;" 
+                             alt="{{ donation.title }}">
+                        {% else %}
+                        <div class="card-img-top bg-body-secondary d-flex align-items-center justify-content-center" 
+                             style="height: 200px;">
+                            <i class="fas fa-image fa-3x text-muted"></i>
+                        </div>
+                        {% endif %}
+                        <div class="card-body d-flex flex-column">
+                            <h6 class="card-title">{{ donation.title }}</h6>
+                            <p class="card-text text-muted small flex-grow-1">
+                                {{ donation.description[:100] }}{% if donation.description|length > 100 %}...{% endif %}
+                            </p>
+                            
+                            <div class="mb-3">
+                                <small class="text-muted d-block">
+                                    <i class="fas fa-user me-1"></i>{{ donation.donor.username }}
+                                </small>
+                                <small class="text-muted d-block">
+                                    <i class="fas fa-tag me-1"></i>{{ donation.category.name }}
+                                </small>
+                                <small class="text-muted d-block">
+                                    <i class="fas fa-calendar me-1"></i>{{ donation.created_at.strftime('%b %d, %Y') }}
+                                </small>
+                            </div>
+                            
+                            <!-- Approval Actions -->
+                            <div class="d-flex gap-2">
+                                <form method="POST" action="{{ url_for('approve_donation', id=donation.id) }}" class="flex-grow-1">
+                                    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
+                                    <input type="hidden" name="status" value="approved">
+                                    <button type="submit" class="btn btn-success btn-sm w-100">
+                                        <i class="fas fa-check me-1"></i>Approve
+                                    </button>
+                                </form>
+                                <form method="POST" action="{{ url_for('approve_donation', id=donation.id) }}" class="flex-grow-1">
+                                    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
+                                    <input type="hidden" name="status" value="rejected">
+                                    <button type="submit" class="btn btn-danger btn-sm w-100">
+                                        <i class="fas fa-times me-1"></i>Reject
+                                    </button>
+                                </form>
+                            </div>
+                            
+                            <a href="{{ url_for('item_detail', id=donation.id) }}" class="btn btn-outline-secondary btn-sm mt-2">
+                                <i class="fas fa-eye me-1"></i>View Details
+                            </a>
+                        </div>
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+        {% else %}
+            <div class="text-center py-5">
+                <i class="fas fa-check-circle fa-4x text-success mb-3"></i>
+                <h4 class="text-muted">No Pending Donations</h4>
+                <p class="text-muted">All donations have been reviewed!</p>
+            </div>
+        {% endif %}
+    </div>
+
+    <!-- Active Requests Tab -->
+    <div class="tab-pane fade" id="requests" role="tabpanel">
+        {% if active_requests %}
+            <div class="row g-3">
+                {% for request in active_requests %}
+                <div class="col-md-6 col-lg-4">
+                    <div class="card h-100">
+                        <div class="card-body d-flex flex-column">
+                            <div class="d-flex justify-content-between align-items-start mb-2">
+                                <h6 class="card-title">{{ request.title }}</h6>
+                                <span class="badge bg-{{ 'danger' if request.urgency == 'urgent' else 'warning' if request.urgency == 'high' else 'info' if request.urgency == 'normal' else 'secondary' }}">
+                                    {{ request.urgency.title() }}
+                                </span>
+                            </div>
+                            
+                            <p class="card-text text-muted small flex-grow-1">
+                                {{ request.description[:120] }}{% if request.description|length > 120 %}...{% endif %}
+                            </p>
+                            
+                            <div class="mb-3">
+                                <small class="text-muted d-block">
+                                    <i class="fas fa-user me-1"></i>{{ request.requester.username }}
+                                </small>
+                                <small class="text-muted d-block">
+                                    <i class="fas fa-tag me-1"></i>{{ request.category.name }}
+                                </small>
+                                <small class="text-muted d-block">
+                                    <i class="fas fa-calendar me-1"></i>{{ request.created_at.strftime('%b %d, %Y') }}
+                                </small>
+                            </div>
+                            
+                            <!-- Check for potential matches -->
+                            {% set approved_donations = namespace() %}
+                            {% set approved_donations.items = [] %}
+                            {% for donation in pending_donations + [] %}
+                                {% if donation.status == 'approved' and donation.category_id == request.category_id %}
+                                    {% set _ = approved_donations.items.append(donation) %}
+                                {% endif %}
+                            {% endfor %}
+                            
+                            {% if approved_donations.items %}
+                                <div class="alert alert-info alert-sm py-2">
+                                    <i class="fas fa-lightbulb me-1"></i>
+                                    {{ approved_donations.items|length }} potential match(es) available
+                                </div>
+                            {% endif %}
+                            
+                            <button class="btn btn-primary btn-sm" data-bs-toggle="modal" data-bs-target="#matchModal{{ request.id }}">
+                                <i class="fas fa-search me-1"></i>Find Matches
+                            </button>
+                        </div>
+                    </div>
+                    
+                    <!-- Match Modal -->
+                    <div class="modal fade" id="matchModal{{ request.id }}" tabindex="-1">
+                        <div class="modal-dialog modal-lg">
+                            <div class="modal-content">
+                                <div class="modal-header">
+                                    <h5 class="modal-title">Find Matches for: {{ request.title }}</h5>
+                                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                                </div>
+                                <div class="modal-body">
+                                    <p class="text-muted">{{ request.description }}</p>
+                                    <h6>Available donations in {{ request.category.name }}:</h6>
+                                    <!-- This would need to be populated with approved donations from the same category -->
+                                    <div class="alert alert-info">
+                                        <i class="fas fa-info-circle me-1"></i>
+                                        Manual matching feature - contact system administrator to implement advanced matching logic.
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+        {% else %}
+            <div class="text-center py-5">
+                <i class="fas fa-hand-holding-heart fa-4x text-muted mb-3"></i>
+                <h4 class="text-muted">No Active Requests</h4>
+                <p class="text-muted">All requests have been fulfilled or cancelled.</p>
+            </div>
+        {% endif %}
+    </div>
+
+    <!-- Recent Matches Tab -->
+    <div class="tab-pane fade" id="matches" role="tabpanel">
+        {% if recent_matches %}
+            <div class="table-responsive">
+                <table class="table table-hover">
+                    <thead>
+                        <tr>
+                            <th>Donation</th>
+                            <th>Request</th>
+                            <th>Donor</th>
+                            <th>Requester</th>
+                            <th>Matched By</th>
+                            <th>Date</th>
+                            <th>Status</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for match in recent_matches %}
+                        <tr>
+                            <td>
+                                <a href="{{ url_for('item_detail', id=match.donation.id) }}" class="text-decoration-none">
+                                    {{ match.donation.title }}
+                                </a>
+                            </td>
+                            <td>{{ match.request.title }}</td>
+                            <td>{{ match.donation.donor.username }}</td>
+                            <td>{{ match.request.requester.username }}</td>
+                            <td>{{ match.matched_by.username }}</td>
+                            <td>{{ match.created_at.strftime('%b %d, %Y') }}</td>
+                            <td>
+                                {% if match.status == 'pending' %}
+                                    <span class="badge bg-warning text-dark">Pending</span>
+                                {% elif match.status == 'approved' %}
+                                    <span class="badge bg-success">Approved</span>
+                                {% elif match.status == 'completed' %}
+                                    <span class="badge bg-primary">Completed</span>
+                                {% endif %}
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        {% else %}
+            <div class="text-center py-5">
+                <i class="fas fa-handshake fa-4x text-muted mb-3"></i>
+                <h4 class="text-muted">No Matches Yet</h4>
+                <p class="text-muted">Start connecting donors with those in need!</p>
+            </div>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}

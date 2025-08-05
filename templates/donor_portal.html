@@ -1,0 +1,220 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="row">
+    <div class="col-12">
+        <div class="d-flex justify-content-between align-items-center mb-4">
+            <h1 class="h2">
+                <i class="fas fa-user-circle me-2"></i>My Portal
+            </h1>
+            <div class="d-flex gap-2">
+                <a href="{{ url_for('donate_item') }}" class="btn btn-primary">
+                    <i class="fas fa-gift me-2"></i>Donate Item
+                </a>
+                <a href="{{ url_for('request_item') }}" class="btn btn-outline-secondary">
+                    <i class="fas fa-hand-holding-heart me-2"></i>Request Item
+                </a>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Statistics Cards -->
+<div class="row mb-4">
+    <div class="col-md-3">
+        <div class="card text-center">
+            <div class="card-body">
+                <i class="fas fa-gift fa-2x text-primary mb-2"></i>
+                <h4 class="card-title">{{ donations|length }}</h4>
+                <p class="card-text text-muted">Total Donations</p>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card text-center">
+            <div class="card-body">
+                <i class="fas fa-check-circle fa-2x text-success mb-2"></i>
+                <h4 class="card-title">{{ donations|selectattr('status', 'equalto', 'donated')|list|length }}</h4>
+                <p class="card-text text-muted">Items Donated</p>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card text-center">
+            <div class="card-body">
+                <i class="fas fa-hand-holding-heart fa-2x text-info mb-2"></i>
+                <h4 class="card-title">{{ requests|length }}</h4>
+                <p class="card-text text-muted">Total Requests</p>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card text-center">
+            <div class="card-body">
+                <i class="fas fa-handshake fa-2x text-warning mb-2"></i>
+                <h4 class="card-title">{{ requests|selectattr('status', 'equalto', 'fulfilled')|list|length }}</h4>
+                <p class="card-text text-muted">Fulfilled Requests</p>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Tabs for Donations and Requests -->
+<ul class="nav nav-tabs mb-4" id="portalTabs" role="tablist">
+    <li class="nav-item" role="presentation">
+        <button class="nav-link active" id="donations-tab" data-bs-toggle="tab" data-bs-target="#donations" type="button">
+            <i class="fas fa-gift me-2"></i>My Donations
+        </button>
+    </li>
+    <li class="nav-item" role="presentation">
+        <button class="nav-link" id="requests-tab" data-bs-toggle="tab" data-bs-target="#requests" type="button">
+            <i class="fas fa-hand-holding-heart me-2"></i>My Requests
+        </button>
+    </li>
+</ul>
+
+<div class="tab-content" id="portalTabsContent">
+    <!-- Donations Tab -->
+    <div class="tab-pane fade show active" id="donations" role="tabpanel">
+        {% if donations %}
+            <div class="row g-3">
+                {% for donation in donations %}
+                <div class="col-md-6 col-lg-4">
+                    <div class="card h-100">
+                        {% if donation.photo_filename %}
+                        <img src="{{ url_for('static', filename='uploads/' + donation.photo_filename) }}" 
+                             class="card-img-top" style="height: 200px; object-fit: cover;" 
+                             alt="{{ donation.title }}">
+                        {% else %}
+                        <div class="card-img-top bg-body-secondary d-flex align-items-center justify-content-center" 
+                             style="height: 200px;">
+                            <i class="fas fa-image fa-3x text-muted"></i>
+                        </div>
+                        {% endif %}
+                        <div class="card-body d-flex flex-column">
+                            <h6 class="card-title">{{ donation.title }}</h6>
+                            <p class="card-text text-muted small flex-grow-1">
+                                {{ donation.description[:100] }}{% if donation.description|length > 100 %}...{% endif %}
+                            </p>
+                            
+                            <!-- Status Badge -->
+                            <div class="mb-3">
+                                {% if donation.status == 'pending' %}
+                                    <span class="badge bg-warning text-dark">
+                                        <i class="fas fa-clock me-1"></i>Pending Review
+                                    </span>
+                                {% elif donation.status == 'approved' %}
+                                    <span class="badge bg-success">
+                                        <i class="fas fa-check me-1"></i>Approved
+                                    </span>
+                                {% elif donation.status == 'donated' %}
+                                    <span class="badge bg-primary">
+                                        <i class="fas fa-handshake me-1"></i>Donated
+                                    </span>
+                                {% elif donation.status == 'rejected' %}
+                                    <span class="badge bg-danger">
+                                        <i class="fas fa-times me-1"></i>Rejected
+                                    </span>
+                                {% endif %}
+                            </div>
+                            
+                            <div class="d-flex justify-content-between align-items-center">
+                                <small class="text-muted">
+                                    <i class="fas fa-tag me-1"></i>{{ donation.category.name }}
+                                </small>
+                                <a href="{{ url_for('item_detail', id=donation.id) }}" class="btn btn-sm btn-outline-secondary">
+                                    <i class="fas fa-eye me-1"></i>View
+                                </a>
+                            </div>
+                            
+                            <small class="text-muted mt-2">
+                                <i class="fas fa-calendar me-1"></i>
+                                {{ donation.created_at.strftime('%b %d, %Y') }}
+                            </small>
+                        </div>
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+        {% else %}
+            <div class="text-center py-5">
+                <i class="fas fa-gift fa-4x text-muted mb-3"></i>
+                <h4 class="text-muted">No Donations Yet</h4>
+                <p class="text-muted mb-4">Start making a difference by donating items you no longer need.</p>
+                <a href="{{ url_for('donate_item') }}" class="btn btn-primary">
+                    <i class="fas fa-gift me-2"></i>Donate Your First Item
+                </a>
+            </div>
+        {% endif %}
+    </div>
+
+    <!-- Requests Tab -->
+    <div class="tab-pane fade" id="requests" role="tabpanel">
+        {% if requests %}
+            <div class="row g-3">
+                {% for request in requests %}
+                <div class="col-md-6 col-lg-4">
+                    <div class="card h-100">
+                        <div class="card-body d-flex flex-column">
+                            <div class="d-flex justify-content-between align-items-start mb-2">
+                                <h6 class="card-title">{{ request.title }}</h6>
+                                <span class="badge bg-{{ 'danger' if request.urgency == 'urgent' else 'warning' if request.urgency == 'high' else 'info' if request.urgency == 'normal' else 'secondary' }}">
+                                    {{ request.urgency.title() }}
+                                </span>
+                            </div>
+                            
+                            <p class="card-text text-muted small flex-grow-1">
+                                {{ request.description[:120] }}{% if request.description|length > 120 %}...{% endif %}
+                            </p>
+                            
+                            <!-- Status Badge -->
+                            <div class="mb-3">
+                                {% if request.status == 'active' %}
+                                    <span class="badge bg-info">
+                                        <i class="fas fa-search me-1"></i>Looking for Match
+                                    </span>
+                                {% elif request.status == 'fulfilled' %}
+                                    <span class="badge bg-success">
+                                        <i class="fas fa-check me-1"></i>Fulfilled
+                                    </span>
+                                {% elif request.status == 'cancelled' %}
+                                    <span class="badge bg-secondary">
+                                        <i class="fas fa-ban me-1"></i>Cancelled
+                                    </span>
+                                {% endif %}
+                            </div>
+                            
+                            <div class="d-flex justify-content-between align-items-center">
+                                <small class="text-muted">
+                                    <i class="fas fa-tag me-1"></i>{{ request.category.name }}
+                                </small>
+                                {% if request.status == 'fulfilled' and request.fulfilled_at %}
+                                    <small class="text-success">
+                                        <i class="fas fa-calendar-check me-1"></i>
+                                        {{ request.fulfilled_at.strftime('%b %d') }}
+                                    </small>
+                                {% endif %}
+                            </div>
+                            
+                            <small class="text-muted mt-2">
+                                <i class="fas fa-calendar me-1"></i>
+                                {{ request.created_at.strftime('%b %d, %Y') }}
+                            </small>
+                        </div>
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+        {% else %}
+            <div class="text-center py-5">
+                <i class="fas fa-hand-holding-heart fa-4x text-muted mb-3"></i>
+                <h4 class="text-muted">No Requests Yet</h4>
+                <p class="text-muted mb-4">Need something? Let the community know what you're looking for.</p>
+                <a href="{{ url_for('request_item') }}" class="btn btn-primary">
+                    <i class="fas fa-hand-holding-heart me-2"></i>Make Your First Request
+                </a>
+            </div>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}

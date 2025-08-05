@@ -1,0 +1,297 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="row">
+    <div class="col-md-8">
+        <div class="card">
+            {% if donation.photo_filename %}
+            <img src="{{ url_for('static', filename='uploads/' + donation.photo_filename) }}" 
+                 class="card-img-top" style="height: 400px; object-fit: cover;" 
+                 alt="{{ donation.title }}">
+            {% else %}
+            <div class="card-img-top bg-body-secondary d-flex align-items-center justify-content-center" 
+                 style="height: 400px;">
+                <div class="text-center">
+                    <i class="fas fa-image fa-4x text-muted mb-3"></i>
+                    <div class="text-muted">No photo available</div>
+                </div>
+            </div>
+            {% endif %}
+            
+            <div class="card-body">
+                <div class="d-flex justify-content-between align-items-start mb-3">
+                    <h1 class="h3 mb-0">{{ donation.title }}</h1>
+                    {% if donation.status == 'pending' %}
+                        <span class="badge bg-warning text-dark fs-6">
+                            <i class="fas fa-clock me-1"></i>Pending Review
+                        </span>
+                    {% elif donation.status == 'approved' %}
+                        <span class="badge bg-success fs-6">
+                            <i class="fas fa-check me-1"></i>Available
+                        </span>
+                    {% elif donation.status == 'donated' %}
+                        <span class="badge bg-primary fs-6">
+                            <i class="fas fa-handshake me-1"></i>Donated
+                        </span>
+                    {% elif donation.status == 'rejected' %}
+                        <span class="badge bg-danger fs-6">
+                            <i class="fas fa-times me-1"></i>Not Approved
+                        </span>
+                    {% endif %}
+                </div>
+                
+                <div class="mb-4">
+                    <h5>Description</h5>
+                    <p class="lead">{{ donation.description }}</p>
+                </div>
+                
+                <!-- Item Details -->
+                <div class="row mb-4">
+                    <div class="col-md-6">
+                        <h6>Category</h6>
+                        <p class="text-muted">
+                            <i class="fas fa-tag me-2"></i>{{ donation.category.name }}
+                        </p>
+                    </div>
+                    <div class="col-md-6">
+                        <h6>Donated By</h6>
+                        <p class="text-muted">
+                            <i class="fas fa-user me-2"></i>{{ donation.donor.username }}
+                        </p>
+                    </div>
+                </div>
+                
+                <!-- Timeline -->
+                <div class="mb-4">
+                    <h6>Timeline</h6>
+                    <div class="d-flex flex-column gap-2">
+                        <div class="d-flex align-items-center">
+                            <i class="fas fa-plus-circle text-info me-3"></i>
+                            <div>
+                                <strong>Submitted:</strong> {{ donation.created_at.strftime('%B %d, %Y at %I:%M %p') }}
+                            </div>
+                        </div>
+                        
+                        {% if donation.approved_at %}
+                        <div class="d-flex align-items-center">
+                            <i class="fas fa-check-circle text-success me-3"></i>
+                            <div>
+                                <strong>Approved:</strong> {{ donation.approved_at.strftime('%B %d, %Y at %I:%M %p') }}
+                                {% if donation.approved_by %}
+                                    by {{ donation.approved_by.username }}
+                                {% endif %}
+                            </div>
+                        </div>
+                        {% endif %}
+                        
+                        {% if donation.donated_at %}
+                        <div class="d-flex align-items-center">
+                            <i class="fas fa-handshake text-primary me-3"></i>
+                            <div>
+                                <strong>Donated:</strong> {{ donation.donated_at.strftime('%B %d, %Y at %I:%M %p') }}
+                            </div>
+                        </div>
+                        {% endif %}
+                    </div>
+                </div>
+                
+                <!-- Thank You Status -->
+                {% if donation.status == 'donated' %}
+                <div class="alert alert-success">
+                    <i class="fas fa-heart me-2"></i>
+                    <strong>Thank you!</strong> This item has found a new home and made someone's day better.
+                    {% if donation.thank_you_sent %}
+                        A thank you note has been sent to the donor.
+                    {% endif %}
+                </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+    
+    <!-- Sidebar -->
+    <div class="col-md-4">
+        <!-- Actions Card -->
+        {% if current_user.is_authenticated %}
+        <div class="card mb-4">
+            <div class="card-header">
+                <h6 class="mb-0">
+                    <i class="fas fa-cog me-2"></i>Actions
+                </h6>
+            </div>
+            <div class="card-body">
+                {% if current_user.is_admin %}
+                    {% if donation.status == 'pending' %}
+                    <div class="d-grid gap-2">
+                        <form method="POST" action="{{ url_for('approve_donation', id=donation.id) }}">
+                            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
+                            <input type="hidden" name="status" value="approved">
+                            <button type="submit" class="btn btn-success w-100">
+                                <i class="fas fa-check me-2"></i>Approve Donation
+                            </button>
+                        </form>
+                        <form method="POST" action="{{ url_for('approve_donation', id=donation.id) }}">
+                            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
+                            <input type="hidden" name="status" value="rejected">
+                            <button type="submit" class="btn btn-danger w-100">
+                                <i class="fas fa-times me-2"></i>Reject Donation
+                            </button>
+                        </form>
+                    </div>
+                    {% elif donation.status == 'approved' %}
+                    <div class="alert alert-info small">
+                        <i class="fas fa-info-circle me-1"></i>
+                        This item is available for matching with requests.
+                    </div>
+                    {% endif %}
+                {% elif current_user.id == donation.donor_id %}
+                    <div class="alert alert-info small">
+                        <i class="fas fa-info-circle me-1"></i>
+                        This is your donation. 
+                        {% if donation.status == 'pending' %}
+                            It's currently being reviewed by our team.
+                        {% elif donation.status == 'approved' %}
+                            It's been approved and is available for matching.
+                        {% elif donation.status == 'donated' %}
+                            It has been successfully donated!
+                        {% endif %}
+                    </div>
+                {% else %}
+                    <div class="alert alert-secondary small">
+                        <i class="fas fa-eye me-1"></i>
+                        You're viewing a community donation.
+                    </div>
+                {% endif %}
+                
+                <div class="d-grid gap-2 mt-3">
+                    <a href="{{ url_for('donor_portal') if current_user.id == donation.donor_id else url_for('index') }}" 
+                       class="btn btn-outline-secondary">
+                        <i class="fas fa-arrow-left me-2"></i>
+                        {{ 'Back to My Portal' if current_user.id == donation.donor_id else 'Back to Home' }}
+                    </a>
+                </div>
+            </div>
+        </div>
+        {% endif %}
+        
+        <!-- Category Info Card -->
+        <div class="card mb-4">
+            <div class="card-header">
+                <h6 class="mb-0">
+                    <i class="fas fa-info-circle me-2"></i>Category Information
+                </h6>
+            </div>
+            <div class="card-body">
+                <h6>{{ donation.category.name }}</h6>
+                <p class="text-muted small mb-0">{{ donation.category.description }}</p>
+            </div>
+        </div>
+        
+        <!-- Matches Information -->
+        {% if donation.matches %}
+        <div class="card mb-4">
+            <div class="card-header">
+                <h6 class="mb-0">
+                    <i class="fas fa-handshake me-2"></i>Matches
+                </h6>
+            </div>
+            <div class="card-body">
+                {% for match in donation.matches %}
+                <div class="d-flex justify-content-between align-items-center mb-2">
+                    <div>
+                        <div class="fw-bold small">{{ match.request.title }}</div>
+                        <div class="text-muted small">
+                            Matched on {{ match.created_at.strftime('%b %d, %Y') }}
+                        </div>
+                    </div>
+                    <span class="badge bg-{{ 'success' if match.status == 'approved' else 'warning' if match.status == 'pending' else 'primary' }}">
+                        {{ match.status.title() }}
+                    </span>
+                </div>
+                {% if not loop.last %}<hr>{% endif %}
+                {% endfor %}
+            </div>
+        </div>
+        {% endif %}
+        
+        <!-- Related Items -->
+        {% if related_items %}
+        <div class="card mb-4">
+            <div class="card-header">
+                <h6 class="mb-0">
+                    <i class="fas fa-tag me-2"></i>Similar Items
+                </h6>
+            </div>
+            <div class="card-body">
+                {% for item in related_items %}
+                <div class="d-flex mb-3">
+                    {% if item.photo_filename %}
+                    <img src="{{ url_for('static', filename='uploads/' + item.photo_filename) }}" 
+                         class="me-3 rounded" style="width: 60px; height: 60px; object-fit: cover;" 
+                         alt="{{ item.title }}">
+                    {% else %}
+                    <div class="me-3 bg-light rounded d-flex align-items-center justify-content-center" 
+                         style="width: 60px; height: 60px;">
+                        <i class="fas fa-image text-muted"></i>
+                    </div>
+                    {% endif %}
+                    <div class="flex-grow-1">
+                        <div class="fw-bold small">
+                            <a href="{{ url_for('item_detail', id=item.id) }}" class="text-decoration-none">
+                                {{ item.title }}
+                            </a>
+                        </div>
+                        <div class="text-muted small">
+                            {{ item.description[:50] }}{% if item.description|length > 50 %}...{% endif %}
+                        </div>
+                        <div class="text-muted small">
+                            {{ item.approved_at.strftime('%b %d') if item.approved_at else item.created_at.strftime('%b %d') }}
+                        </div>
+                    </div>
+                </div>
+                {% if not loop.last %}<hr class="my-2">{% endif %}
+                {% endfor %}
+                
+                <div class="text-center mt-3">
+                    <a href="{{ url_for('browse_donations', category=donation.category_id) }}" 
+                       class="btn btn-outline-primary btn-sm">
+                        View All {{ donation.category.name }}
+                    </a>
+                </div>
+            </div>
+        </div>
+        {% endif %}
+        
+        <!-- More Ways to Help -->
+        <div class="card">
+            <div class="card-header">
+                <h6 class="mb-0">
+                    <i class="fas fa-heart me-2"></i>More Ways to Help
+                </h6>
+            </div>
+            <div class="card-body">
+                <p class="small text-muted mb-3">
+                    Every donation makes a difference in someone's life. Thank you for being part of our caring community!
+                </p>
+                
+                {% if current_user.is_authenticated %}
+                <div class="d-grid gap-2">
+                    <a href="{{ url_for('donate_item') }}" class="btn btn-primary btn-sm">
+                        <i class="fas fa-gift me-2"></i>Donate Another Item
+                    </a>
+                    <a href="{{ url_for('request_item') }}" class="btn btn-outline-secondary btn-sm">
+                        <i class="fas fa-hand-holding-heart me-2"></i>Request Something
+                    </a>
+                </div>
+                {% else %}
+                <div class="d-grid gap-2">
+                    <a href="{{ url_for('register') }}" class="btn btn-primary btn-sm">
+                        <i class="fas fa-user-plus me-2"></i>Join Community
+                    </a>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

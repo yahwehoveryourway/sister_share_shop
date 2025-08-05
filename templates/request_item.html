@@ -1,0 +1,156 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-md-8 col-lg-6">
+        <div class="card">
+            <div class="card-header">
+                <h2 class="h4 mb-0">Need Something</h2>
+                <p class="text-muted mb-0">What are you looking for?</p>
+            </div>
+            <div class="card-body">
+                <form method="POST">
+                    {{ form.hidden_tag() }}
+                    
+                    <!-- Title Field -->
+                    <div class="mb-3">
+                        {{ form.title.label(class="form-label") }}
+                        {{ form.title(class="form-control" + (" is-invalid" if form.title.errors else "")) }}
+                        {% if form.title.errors %}
+                            <div class="invalid-feedback">
+                                {% for error in form.title.errors %}
+                                    {{ error }}
+                                {% endfor %}
+                            </div>
+                        {% endif %}
+                        <div class="form-text">What are you looking for? Be specific but concise</div>
+                    </div>
+                    
+                    <!-- Category Field -->
+                    <div class="mb-3">
+                        {{ form.category_id.label(class="form-label") }}
+                        {{ form.category_id(class="form-select" + (" is-invalid" if form.category_id.errors else "")) }}
+                        {% if form.category_id.errors %}
+                            <div class="invalid-feedback">
+                                {% for error in form.category_id.errors %}
+                                    {{ error }}
+                                {% endfor %}
+                            </div>
+                        {% endif %}
+                        <div class="form-text">Select the category that best matches what you need</div>
+                    </div>
+                    
+                    <!-- Urgency Field -->
+                    <div class="mb-3">
+                        {{ form.urgency.label(class="form-label") }}
+                        {{ form.urgency(class="form-select" + (" is-invalid" if form.urgency.errors else "")) }}
+                        {% if form.urgency.errors %}
+                            <div class="invalid-feedback">
+                                {% for error in form.urgency.errors %}
+                                    {{ error }}
+                                {% endfor %}
+                            </div>
+                        {% endif %}
+                        <div class="form-text">
+                            <div class="small text-muted">
+                                <div><strong>Urgent:</strong> Immediate need (emergency situations)</div>
+                                <div><strong>High:</strong> Needed soon (within a week)</div>
+                                <div><strong>Normal:</strong> Needed reasonably soon (within a month)</div>
+                                <div><strong>Low:</strong> Would be nice to have (no rush)</div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Description Field -->
+                    <div class="mb-4">
+                        {{ form.description.label(class="form-label") }}
+                        {{ form.description(class="form-control" + (" is-invalid" if form.description.errors else ""), rows="4") }}
+                        {% if form.description.errors %}
+                            <div class="invalid-feedback">
+                                {% for error in form.description.errors %}
+                                    {{ error }}
+                                {% endfor %}
+                            </div>
+                        {% endif %}
+                        <div class="form-text">
+                            Explain why you need this item and any specific requirements (size, color, condition, etc.)
+                        </div>
+                    </div>
+                    
+                    <!-- Information Box -->
+                    <div class="alert alert-info">
+                        <i class="fas fa-info-circle me-2"></i>
+                        <strong>How it works:</strong>
+                        <ul class="mb-0 mt-2">
+                            <li>Your request will be visible to the community</li>
+                            <li>Our team will look for matching donations</li>
+                            <li>You'll be notified when a match is found</li>
+                            <li>Coordinate pickup or delivery with our team</li>
+                        </ul>
+                    </div>
+                    
+                    <!-- Submit Button -->
+                    <div class="d-grid gap-2 d-md-flex justify-content-md-end">
+                        <a href="{{ url_for('donor_portal') }}" class="btn btn-secondary">
+                            <i class="fas fa-arrow-left me-2"></i>Cancel
+                        </a>
+                        {{ form.submit(class="btn btn-primary") }}
+                    </div>
+                </form>
+            </div>
+        </div>
+        
+        <!-- Community Guidelines Card -->
+        <div class="card mt-4">
+            <div class="card-header">
+                <h5 class="mb-0">
+                    <i class="fas fa-heart me-2"></i>Community Guidelines
+                </h5>
+            </div>
+            <div class="card-body">
+                <div class="row">
+                    <div class="col-md-6">
+                        <h6><i class="fas fa-check text-success me-2"></i>Good Requests</h6>
+                        <ul class="text-muted small">
+                            <li>Be specific about what you need</li>
+                            <li>Explain why the item is needed</li>
+                            <li>Be flexible about condition/brand</li>
+                            <li>Express gratitude</li>
+                        </ul>
+                    </div>
+                    <div class="col-md-6">
+                        <h6><i class="fas fa-users text-primary me-2"></i>Community Spirit</h6>
+                        <ul class="text-muted small">
+                            <li>Only request what you truly need</li>
+                            <li>Be patient - good things take time</li>
+                            <li>Pay it forward when you can</li>
+                            <li>Thank your donors</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+// Update urgency description based on selection
+document.getElementById('urgency').addEventListener('change', function() {
+    const urgency = this.value;
+    const descriptions = {
+        'urgent': 'Use sparingly - for emergency situations only',
+        'high': 'Needed within a week',
+        'normal': 'Standard timeline - needed within a month',
+        'low': 'No rush - would be nice to have'
+    };
+    
+    // Update help text if needed
+    const helpText = this.parentNode.querySelector('.form-text');
+    if (descriptions[urgency]) {
+        // Could add dynamic help text updates here
+    }
+});
+</script>
+{% endblock %}

@@ -1,0 +1,209 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-md-6 col-lg-5">
+        <div class="card">
+            <div class="card-header text-center">
+                <h2 class="h4 mb-0">
+                    <i class="fas fa-user-plus me-2"></i>Join Sister Share Shop
+                </h2>
+                <p class="text-muted mb-0">Create your account and start sharing</p>
+            </div>
+            <div class="card-body">
+                <form method="POST">
+                    {{ form.hidden_tag() }}
+                    
+                    <!-- Username Field -->
+                    <div class="mb-3">
+                        {{ form.username.label(class="form-label") }}
+                        <div class="input-group">
+                            <span class="input-group-text">
+                                <i class="fas fa-user"></i>
+                            </span>
+                            {{ form.username(class="form-control" + (" is-invalid" if form.username.errors else "")) }}
+                        </div>
+                        {% if form.username.errors %}
+                            <div class="invalid-feedback d-block">
+                                {% for error in form.username.errors %}
+                                    {{ error }}
+                                {% endfor %}
+                            </div>
+                        {% endif %}
+                        <div class="form-text">Choose a username that others will see when you donate or request items</div>
+                    </div>
+                    
+                    <!-- Email Field -->
+                    <div class="mb-3">
+                        {{ form.email.label(class="form-label") }}
+                        <div class="input-group">
+                            <span class="input-group-text">
+                                <i class="fas fa-envelope"></i>
+                            </span>
+                            {{ form.email(class="form-control" + (" is-invalid" if form.email.errors else "")) }}
+                        </div>
+                        {% if form.email.errors %}
+                            <div class="invalid-feedback d-block">
+                                {% for error in form.email.errors %}
+                                    {{ error }}
+                                {% endfor %}
+                            </div>
+                        {% endif %}
+                        <div class="form-text">We'll use this to send you notifications about matches and thank you notes</div>
+                    </div>
+                    
+                    <!-- Password Field -->
+                    <div class="mb-4">
+                        {{ form.password.label(class="form-label") }}
+                        <div class="input-group">
+                            <span class="input-group-text">
+                                <i class="fas fa-lock"></i>
+                            </span>
+                            {{ form.password(class="form-control" + (" is-invalid" if form.password.errors else "")) }}
+                        </div>
+                        {% if form.password.errors %}
+                            <div class="invalid-feedback d-block">
+                                {% for error in form.password.errors %}
+                                    {{ error }}
+                                {% endfor %}
+                            </div>
+                        {% endif %}
+                        <div class="form-text">Minimum 6 characters</div>
+                    </div>
+                    
+                    <!-- Community Guidelines Agreement -->
+                    <div class="alert alert-info">
+                        <h6><i class="fas fa-info-circle me-2"></i>Community Guidelines</h6>
+                        <div class="small">
+                            By creating an account, you agree to:
+                            <ul class="mb-0 mt-2">
+                                <li>Be respectful and kind to all community members</li>
+                                <li>Only request items you truly need</li>
+                                <li>Provide accurate descriptions of donated items</li>
+                                <li>Pay it forward when you can</li>
+                            </ul>
+                        </div>
+                    </div>
+                    
+                    <!-- Submit Button -->
+                    <div class="d-grid">
+                        {{ form.submit(class="btn btn-primary") }}
+                    </div>
+                </form>
+            </div>
+            <div class="card-footer text-center">
+                <p class="mb-0">
+                    Already have an account? 
+                    <a href="{{ url_for('login') }}" class="text-decoration-none">
+                        <i class="fas fa-sign-in-alt me-1"></i>Sign in here
+                    </a>
+                </p>
+            </div>
+        </div>
+        
+        <!-- Welcome Card -->
+        <div class="card mt-4">
+            <div class="card-body text-center">
+                <h5 class="card-title">
+                    <i class="fas fa-heart text-primary me-2"></i>Welcome to Our Community
+                </h5>
+                <p class="card-text text-muted">
+                    Sister Share Shop is built on the belief that communities grow stronger when neighbors help neighbors. 
+                    Every donation and every request is an opportunity to make someone's day better.
+                </p>
+                
+                <div class="row mt-3">
+                    <div class="col-md-6">
+                        <div class="d-flex align-items-center mb-2">
+                            <i class="fas fa-gift text-primary me-3"></i>
+                            <div class="text-start">
+                                <div class="fw-bold small">Share What You Have</div>
+                                <div class="text-muted small">Turn clutter into community care</div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="d-flex align-items-center mb-2">
+                            <i class="fas fa-hand-holding-heart text-success me-3"></i>
+                            <div class="text-start">
+                                <div class="fw-bold small">Find What You Need</div>
+                                <div class="text-muted small">Connect with generous neighbors</div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="d-flex align-items-center mb-2">
+                            <i class="fas fa-handshake text-info me-3"></i>
+                            <div class="text-start">
+                                <div class="fw-bold small">Build Connections</div>
+                                <div class="text-muted small">Strengthen community bonds</div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="d-flex align-items-center mb-2">
+                            <i class="fas fa-recycle text-warning me-3"></i>
+                            <div class="text-start">
+                                <div class="fw-bold small">Reduce Waste</div>
+                                <div class="text-muted small">Give items a second life</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+// Add form validation feedback
+document.addEventListener('DOMContentLoaded', function() {
+    const form = document.querySelector('form');
+    const username = document.getElementById('username');
+    const email = document.getElementById('email');
+    const password = document.getElementById('password');
+    
+    // Focus on username field when page loads
+    if (username) {
+        username.focus();
+    }
+    
+    // Add real-time validation feedback
+    if (password) {
+        password.addEventListener('input', function() {
+            const length = this.value.length;
+            const helpText = this.parentNode.parentNode.querySelector('.form-text');
+            
+            if (length === 0) {
+                helpText.textContent = 'Minimum 6 characters';
+                helpText.className = 'form-text';
+            } else if (length < 6) {
+                helpText.textContent = `${6 - length} more characters needed`;
+                helpText.className = 'form-text text-warning';
+            } else {
+                helpText.textContent = 'Password strength: Good';
+                helpText.className = 'form-text text-success';
+            }
+        });
+    }
+    
+    // Email validation feedback
+    if (email) {
+        email.addEventListener('blur', function() {
+            const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+            const helpText = this.parentNode.parentNode.querySelector('.form-text');
+            
+            if (this.value && !emailRegex.test(this.value)) {
+                helpText.textContent = 'Please enter a valid email address';
+                helpText.className = 'form-text text-warning';
+            } else if (this.value) {
+                helpText.textContent = 'We\'ll use this to send you notifications about matches and thank you notes';
+                helpText.className = 'form-text';
+            }
+        });
+    }
+});
+</script>
+{% endblock %}

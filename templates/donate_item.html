@@ -1,0 +1,157 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-md-8 col-lg-6">
+        <div class="card">
+            <div class="card-header">
+                <h2 class="h4 mb-0">Give Something</h2>
+                <p class="text-muted mb-0">What would you like to share?</p>
+            </div>
+            <div class="card-body">
+                <form method="POST" enctype="multipart/form-data">
+                    {{ form.hidden_tag() }}
+                    
+                    <!-- Title Field -->
+                    <div class="mb-3">
+                        {{ form.title.label(class="form-label") }}
+                        {{ form.title(class="form-control" + (" is-invalid" if form.title.errors else "")) }}
+                        {% if form.title.errors %}
+                            <div class="invalid-feedback">
+                                {% for error in form.title.errors %}
+                                    {{ error }}
+                                {% endfor %}
+                            </div>
+                        {% endif %}
+                        <div class="form-text">Give your item a clear, descriptive title</div>
+                    </div>
+                    
+                    <!-- Category Field -->
+                    <div class="mb-3">
+                        {{ form.category_id.label(class="form-label") }}
+                        {{ form.category_id(class="form-select" + (" is-invalid" if form.category_id.errors else "")) }}
+                        {% if form.category_id.errors %}
+                            <div class="invalid-feedback">
+                                {% for error in form.category_id.errors %}
+                                    {{ error }}
+                                {% endfor %}
+                            </div>
+                        {% endif %}
+                        <div class="form-text">Select the category that best describes your item</div>
+                    </div>
+                    
+                    <!-- Description Field -->
+                    <div class="mb-3">
+                        {{ form.description.label(class="form-label") }}
+                        {{ form.description(class="form-control" + (" is-invalid" if form.description.errors else ""), rows="4") }}
+                        {% if form.description.errors %}
+                            <div class="invalid-feedback">
+                                {% for error in form.description.errors %}
+                                    {{ error }}
+                                {% endfor %}
+                            </div>
+                        {% endif %}
+                        <div class="form-text">Describe the condition, size, color, or any other relevant details</div>
+                    </div>
+                    
+                    <!-- Photo Upload Field -->
+                    <div class="mb-4">
+                        {{ form.photo.label(class="form-label") }}
+                        {{ form.photo(class="form-control" + (" is-invalid" if form.photo.errors else "")) }}
+                        {% if form.photo.errors %}
+                            <div class="invalid-feedback">
+                                {% for error in form.photo.errors %}
+                                    {{ error }}
+                                {% endfor %}
+                            </div>
+                        {% endif %}
+                        <div class="form-text">
+                            <i class="fas fa-camera me-1"></i>
+                            Upload a photo to help others see what you're donating (JPG, PNG, GIF - max 16MB)
+                        </div>
+                    </div>
+                    
+                    <!-- Information Box -->
+                    <div class="alert alert-info">
+                        <i class="fas fa-info-circle me-2"></i>
+                        <strong>What happens next?</strong>
+                        <ul class="mb-0 mt-2">
+                            <li>Your donation will be reviewed by our team</li>
+                            <li>Once approved, it will be visible to the community</li>
+                            <li>We'll notify you when someone is matched with your item</li>
+                            <li>You'll receive a thank you note when your item is donated</li>
+                        </ul>
+                    </div>
+                    
+                    <!-- Submit Button -->
+                    <div class="d-grid gap-2 d-md-flex justify-content-md-end">
+                        <a href="{{ url_for('donor_portal') }}" class="btn btn-secondary">
+                            <i class="fas fa-arrow-left me-2"></i>Cancel
+                        </a>
+                        {{ form.submit(class="btn btn-primary") }}
+                    </div>
+                </form>
+            </div>
+        </div>
+        
+        <!-- Tips Card -->
+        <div class="card mt-4">
+            <div class="card-header">
+                <h5 class="mb-0">
+                    <i class="fas fa-lightbulb me-2"></i>Tips for a Great Donation
+                </h5>
+            </div>
+            <div class="card-body">
+                <div class="row">
+                    <div class="col-md-6">
+                        <h6><i class="fas fa-camera text-primary me-2"></i>Good Photos</h6>
+                        <ul class="text-muted small">
+                            <li>Take photos in good lighting</li>
+                            <li>Show different angles</li>
+                            <li>Include size references if helpful</li>
+                        </ul>
+                    </div>
+                    <div class="col-md-6">
+                        <h6><i class="fas fa-edit text-primary me-2"></i>Clear Descriptions</h6>
+                        <ul class="text-muted small">
+                            <li>Mention condition (new, like new, good, fair)</li>
+                            <li>Include size, color, brand if relevant</li>
+                            <li>Note any defects or wear</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+// Preview uploaded image
+document.getElementById('photo').addEventListener('change', function(e) {
+    const file = e.target.files[0];
+    if (file) {
+        // Remove any existing preview
+        const existingPreview = document.getElementById('imagePreview');
+        if (existingPreview) {
+            existingPreview.remove();
+        }
+        
+        // Create new preview
+        const reader = new FileReader();
+        reader.onload = function(e) {
+            const preview = document.createElement('div');
+            preview.id = 'imagePreview';
+            preview.className = 'mt-2';
+            preview.innerHTML = `
+                <img src="${e.target.result}" class="img-thumbnail" style="max-width: 200px; max-height: 200px;">
+                <div class="text-muted small mt-1">Preview of uploaded image</div>
+            `;
+            document.getElementById('photo').parentNode.appendChild(preview);
+        };
+        reader.readAsDataURL(file);
+    }
+});
+</script>
+{% endblock %}

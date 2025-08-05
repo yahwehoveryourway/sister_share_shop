@@ -1,0 +1,220 @@
+{% extends "base.html" %}
+
+{% block title %}Browse Donations - Sister Share Shop{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-12">
+        <h2 class="mb-4">Available Items</h2>
+    </div>
+</div>
+
+<!-- Search and Filter Section -->
+<div class="row mb-4">
+    <div class="col-12">
+        <div class="card search-filters">
+            <div class="card-body">
+                <form method="GET" action="{{ url_for('browse_donations') }}">
+                    <div class="row g-3">
+                        <!-- Search Bar -->
+                        <div class="col-md-4">
+                            <label for="search" class="form-label">Search Items</label>
+                            <input type="text" class="form-control" id="search" name="search" 
+                                   value="{{ request.args.get('search', '') }}" 
+                                   placeholder="Search by title or description...">
+                        </div>
+                        
+                        <!-- Category Filter -->
+                        <div class="col-md-3">
+                            <label for="category" class="form-label">Category</label>
+                            <select class="form-select" id="category" name="category">
+                                <option value="">All Categories</option>
+                                {% for category in categories %}
+                                    <option value="{{ category.id }}" 
+                                            {% if request.args.get('category') == category.id|string %}selected{% endif %}>
+                                        {{ category.name }}
+                                    </option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                        
+                        <!-- Sort Options -->
+                        <div class="col-md-3">
+                            <label for="sort" class="form-label">Sort By</label>
+                            <select class="form-select" id="sort" name="sort">
+                                <option value="newest" {% if request.args.get('sort', 'newest') == 'newest' %}selected{% endif %}>
+                                    Newest First
+                                </option>
+                                <option value="oldest" {% if request.args.get('sort') == 'oldest' %}selected{% endif %}>
+                                    Oldest First
+                                </option>
+                                <option value="title_asc" {% if request.args.get('sort') == 'title_asc' %}selected{% endif %}>
+                                    Title A-Z
+                                </option>
+                                <option value="title_desc" {% if request.args.get('sort') == 'title_desc' %}selected{% endif %}>
+                                    Title Z-A
+                                </option>
+                            </select>
+                        </div>
+                        
+                        <!-- Filter Buttons -->
+                        <div class="col-md-2">
+                            <label class="form-label">&nbsp;</label>
+                            <div class="d-grid gap-2">
+                                <button type="submit" class="btn btn-primary">
+                                    <i class="fas fa-search me-1"></i>Search
+                                </button>
+                                <a href="{{ url_for('browse_donations') }}" class="btn btn-outline-secondary btn-sm">
+                                    Clear
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Additional Filters -->
+                    <div class="row g-3 mt-2">
+                        <div class="col-md-4">
+                            <div class="form-check">
+                                <input class="form-check-input" type="checkbox" id="has_photo" name="has_photo" value="1"
+                                       {% if request.args.get('has_photo') %}checked{% endif %}>
+                                <label class="form-check-label" for="has_photo">
+                                    Items with photos only
+                                </label>
+                            </div>
+                        </div>
+                        <div class="col-md-4">
+                            <label for="date_from" class="form-label">Added after</label>
+                            <input type="date" class="form-control" id="date_from" name="date_from" 
+                                   value="{{ request.args.get('date_from', '') }}">
+                        </div>
+                        <div class="col-md-4">
+                            <label for="date_to" class="form-label">Added before</label>
+                            <input type="date" class="form-control" id="date_to" name="date_to" 
+                                   value="{{ request.args.get('date_to', '') }}">
+                        </div>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Results Summary -->
+<div class="row mb-3">
+    <div class="col-12">
+        <div class="d-flex justify-content-between align-items-center">
+            <p class="text-muted mb-0">
+                {% if donations %}
+                    Showing {{ donations|length }} of {{ total_count }} items
+                    {% if request.args.get('search') %}
+                        for "{{ request.args.get('search') }}"
+                    {% endif %}
+                {% else %}
+                    No items found
+                    {% if request.args.get('search') %}
+                        for "{{ request.args.get('search') }}"
+                    {% endif %}
+                {% endif %}
+            </p>
+            {% if current_user.is_authenticated %}
+            <a href="{{ url_for('donate_item') }}" class="btn btn-primary btn-sm">
+                <i class="fas fa-plus me-1"></i>Add Item
+            </a>
+            {% endif %}
+        </div>
+    </div>
+</div>
+
+<!-- Donations Grid -->
+{% if donations %}
+<div class="row g-4">
+    {% for donation in donations %}
+    <div class="col-md-6 col-lg-4">
+        <div class="card h-100 browse-item-card">
+            {% if donation.photo_filename %}
+            <img src="{{ url_for('static', filename='uploads/' + donation.photo_filename) }}" 
+                 class="card-img-top" alt="{{ donation.title }}" style="height: 200px; object-fit: cover;">
+            {% else %}
+            <div class="card-img-top bg-light d-flex align-items-center justify-content-center" style="height: 200px;">
+                <i class="fas fa-image fa-3x text-muted"></i>
+            </div>
+            {% endif %}
+            
+            <div class="card-body d-flex flex-column">
+                <h5 class="card-title">{{ donation.title }}</h5>
+                <p class="card-text text-muted small mb-2">
+                    <i class="fas fa-tag me-1"></i>{{ donation.category.name }}
+                </p>
+                <p class="card-text flex-grow-1">{{ donation.description[:100] }}{% if donation.description|length > 100 %}...{% endif %}</p>
+                
+                <div class="mt-auto">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <small class="text-muted">
+                            <i class="fas fa-clock me-1"></i>{{ donation.approved_at.strftime('%b %d, %Y') if donation.approved_at else donation.created_at.strftime('%b %d, %Y') }}
+                        </small>
+                        <a href="{{ url_for('item_detail', id=donation.id) }}" class="btn btn-outline-primary btn-sm">
+                            View Details
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    {% endfor %}
+</div>
+
+<!-- Pagination -->
+{% if pagination and pagination.pages > 1 %}
+<nav aria-label="Page navigation" class="mt-5">
+    <ul class="pagination justify-content-center">
+        {% if pagination.has_prev %}
+            <li class="page-item">
+                <a class="page-link" href="{{ url_for('browse_donations', **request.args, page=pagination.prev_num) }}">
+                    <i class="fas fa-chevron-left"></i> Previous
+                </a>
+            </li>
+        {% endif %}
+        
+        {% for page_num in pagination.iter_pages() %}
+            {% if page_num %}
+                {% if page_num != pagination.page %}
+                    <li class="page-item">
+                        <a class="page-link" href="{{ url_for('browse_donations', **request.args, page=page_num) }}">{{ page_num }}</a>
+                    </li>
+                {% else %}
+                    <li class="page-item active">
+                        <span class="page-link">{{ page_num }}</span>
+                    </li>
+                {% endif %}
+            {% else %}
+                <li class="page-item disabled">
+                    <span class="page-link">...</span>
+                </li>
+            {% endif %}
+        {% endfor %}
+        
+        {% if pagination.has_next %}
+            <li class="page-item">
+                <a class="page-link" href="{{ url_for('browse_donations', **request.args, page=pagination.next_num) }}">
+                    Next <i class="fas fa-chevron-right"></i>
+                </a>
+            </li>
+        {% endif %}
+    </ul>
+</nav>
+{% endif %}
+
+{% else %}
+<div class="text-center py-5">
+    <i class="fas fa-search fa-3x text-muted mb-3"></i>
+    <h4>No items found</h4>
+    <p class="text-muted">Try adjusting your search criteria or browse all available items.</p>
+    {% if request.args %}
+    <a href="{{ url_for('browse_donations') }}" class="btn btn-outline-primary">
+        View All Items
+    </a>
+    {% endif %}
+</div>
+{% endif %}
+
+{% endblock %}
